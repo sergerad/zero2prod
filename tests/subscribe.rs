@@ -1,10 +1,10 @@
-mod helpers;
+mod pg;
 
 #[tokio::test]
 async fn subscribe_retuns_200_valid_form_data() {
     // Start server
     let base_url = helpers::spawn_app().await;
-    println!("Base URL: {}", base_url);
+    helpers::spawn_pg().await;
 
     // Send request
     let client = reqwest::Client::new();
@@ -21,6 +21,7 @@ async fn subscribe_retuns_200_valid_form_data() {
     assert_eq!(200, response.status().as_u16());
 }
 
+#[tokio::test]
 async fn subscribe_retuns_400_missing_form_data() {
     // Start server
     let base_url = helpers::spawn_app().await;
