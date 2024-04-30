@@ -1,15 +1,21 @@
 use std::{fs, sync::mpsc::channel};
 
-use zero2prod::{configuration::get_configuration, pg::run_pg};
+use pg::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Enable logger
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     // Read settings from config file
     let settings = get_configuration()?.database;
 
     // Start Postgres container
-    let (node, _) = run_pg(&settings).await?;
+    let (node, pool) = spawn_pg(&settings).await?;
     println!("Container is running. Waiting for signal to stop.");
+
+    // Close connection pool
+    pool.close().await;
 
     // Store connection string in .env file
     let connection_string = settings.connection_string(node.get_host_port_ipv4(5432).await);

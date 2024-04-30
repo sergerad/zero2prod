@@ -1,10 +1,17 @@
-mod pg;
+mod helpers;
 
 #[tokio::test]
 async fn subscribe_retuns_200_valid_form_data() {
     // Start server
+    let connection_string = helpers::connection_string();
+    let pool = sqlx::PgPool::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres");
+    let saved = sqlx::query!("SELECT email, name FROM subscriptions")
+        .fetch_one(&pool)
+        .await;
+    println!("Saved: {:?}", saved);
     let base_url = helpers::spawn_app().await;
-    helpers::spawn_pg().await;
 
     // Send request
     let client = reqwest::Client::new();
