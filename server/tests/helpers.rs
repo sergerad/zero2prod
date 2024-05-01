@@ -1,9 +1,24 @@
 use std::net::TcpListener;
 
-pub async fn spawn_app() -> String {
+pub struct TestApp {
+    pub base_url: String,
+    pub pool: sqlx::PgPool,
+}
+
+pub async fn spawn_app() -> TestApp {
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to random port");
-    let addr = listener.local_addr().unwrap().to_string();
-    let server = zero2prod::run(listener).expect("Failed to bind address");
+
+    let address = listener.local_addr().unwrap().to_string();
+    let connection_string = pg::connection_string("../.env").expect("Failed to read .env file");
+    let pool = pg::get_pool(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres");
+
+    let server = server::run(listener, pool.clone()).expect("Failed to bind address");
     tokio::spawn(server);
-    format!("http://{addr}")
+
+    TestApp {
+        base_url: format!("http://{}", address),
+        pool,
+    }
 }

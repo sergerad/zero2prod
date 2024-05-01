@@ -8,8 +8,11 @@ async fn main() -> anyhow::Result<()> {
     let settings = configuration::get_configuration()?;
     let listener = TcpListener::bind(format!("127.0.0.1:{}", settings.application_port))?;
 
+    // Read connection string from .env file
+    let connection_string = pg::connection_string(".env")?;
+
     // DB pool
-    let pool = pg::get_pool().await?;
+    let pool = pg::get_pool(&connection_string).await?;
 
     // Server
     let _server = server::run(listener, pool)?.await;

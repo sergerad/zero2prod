@@ -3,36 +3,36 @@ mod helpers;
 #[tokio::test]
 async fn subscribe_retuns_200_valid_form_data() {
     // Start server
-    let connection_string = helpers::connection_string();
-    let pool = sqlx::PgPool::connect(&connection_string)
-        .await
-        .expect("Failed to connect to Postgres");
-    let saved = sqlx::query!("SELECT email, name FROM subscriptions")
-        .fetch_one(&pool)
-        .await;
-    println!("Saved: {:?}", saved);
-    let base_url = helpers::spawn_app().await;
+    let app = helpers::spawn_app().await;
 
     // Send request
     let client = reqwest::Client::new();
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
     let response = client
-        .post(format!("{base_url}/subscriptions"))
+        .post(format!("{}/subscriptions", app.base_url))
         .header("Content-Type", "application/x-www-form-urlencoded")
         .body(body)
         .send()
         .await
         .expect("Failed to execute request");
 
-    // Validate results
+    // Validate request result
     assert_eq!(200, response.status().as_u16());
+
+    // Validate saved data
+    let saved = sqlx::query!("SELECT email, name FROM subscriptions")
+        .fetch_one(&app.pool)
+        .await
+        .expect("Failed to fetch saved data");
+    assert_eq!(saved.email, "ursula_le_guin@gmail.com");
+    assert_eq!(saved.name, "le guin");
 }
 
 #[tokio::test]
 async fn subscribe_retuns_400_missing_form_data() {
     // Start server
-    let base_url = helpers::spawn_app().await;
-    println!("Base URL: {}", base_url);
+    let app = helpers::spawn_app().await;
+    println!("Base URL: {}", app.base_url);
 
     // Instantiate client
     let client = reqwest::Client::new();
@@ -47,7 +47,7 @@ async fn subscribe_retuns_400_missing_form_data() {
     // Send requests
     for (invalid_body, error_message) in test_cases {
         let response = client
-            .post(format!("{base_url}/subscriptions"))
+            .post(format!("{}/subscriptions", app.base_url))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(invalid_body)
             .send()

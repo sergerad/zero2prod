@@ -7,7 +7,8 @@ pub mod routes;
 
 pub fn run(listener: TcpListener, pool: sqlx::PgPool) -> anyhow::Result<Server> {
     // Enable logging
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    std::env::set_var("RUST_LOG", "debug");
+    env_logger::init();
 
     // Create copyable reference to pool
     let pool = web::Data::new(pool);
@@ -18,7 +19,7 @@ pub fn run(listener: TcpListener, pool: sqlx::PgPool) -> anyhow::Result<Server> 
             .wrap(middleware::Logger::default())
             .route("/health", web::get().to(routes::health_check))
             .route("/subscriptions", web::post().to(routes::subscribe))
-            .app_data(web::Data::new(pool.clone()))
+            .app_data(pool.clone())
     })
     .listen(listener)?
     .run();

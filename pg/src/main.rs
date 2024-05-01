@@ -6,7 +6,8 @@ use pg::*;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Enable logger
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
 
     // Read settings from config file
     let settings = get_configuration()?.database;

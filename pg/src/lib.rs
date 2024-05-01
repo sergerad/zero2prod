@@ -58,20 +58,16 @@ pub async fn spawn_pg(
     Ok((node, pool))
 }
 
-fn connection_string() -> anyhow::Result<String> {
+pub fn connection_string(env_file_path: &str) -> anyhow::Result<String> {
     // Read .env file and return content
-    let connection_string = fs::read_to_string(".env")?
+    let connection_string = fs::read_to_string(env_file_path)?
         .trim_start_matches("DATABASE_URL=")
         .replace('"', "")
         .to_string();
     Ok(connection_string)
 }
 
-pub async fn get_pool() -> anyhow::Result<PgPool> {
-    // Read connection string from .env file
-    let connection_string = connection_string()?;
-
-    // Construct pool
-    let pool = PgPool::connect(&connection_string).await?;
+pub async fn get_pool(connection_string: &str) -> anyhow::Result<PgPool> {
+    let pool = PgPool::connect(connection_string).await?;
     Ok(pool)
 }
