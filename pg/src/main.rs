@@ -1,3 +1,4 @@
+use log::info;
 use std::{fs, sync::mpsc::channel};
 
 use pg::*;
@@ -12,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Start Postgres container
     let (node, pool) = spawn_pg(&settings).await?;
-    println!("Container is running. Waiting for signal to stop.");
+    info!("Container is running. Waiting for signal to stop.");
 
     // Close connection pool
     pool.close().await;
@@ -20,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     // Store connection string in .env file
     let connection_string = settings.connection_string(node.get_host_port_ipv4(5432).await);
     fs::write(".env", format!("DATABASE_URL=\"{connection_string}\"",))?;
-    println!("Connection string written to .env");
+    info!("Connection string written to .env");
 
     // Listen for signal to stop
     let (tx, rx) = channel();
@@ -28,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
     rx.recv()?;
 
     // Shut container down
-    println!("Shutting down");
+    info!("Shutting down");
     node.stop().await;
     Ok(())
 }

@@ -1,6 +1,6 @@
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use log::error;
 use sqlx::PgPool;
-
 #[derive(serde::Deserialize, Debug)]
 pub struct FormData {
     email: String,
@@ -12,7 +12,7 @@ pub async fn health_check(_req: HttpRequest) -> impl Responder {
 }
 
 pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> impl Responder {
-    let query = sqlx::query!(
+    match sqlx::query!(
         r#"
         INSERT INTO subscriptions (id, email, name, subscribed_at)
         VALUES ($1, $2, $3, $4)
@@ -21,6 +21,14 @@ pub async fn subscribe(form: web::Form<FormData>, pool: web::Data<PgPool>) -> im
         form.email,
         form.name,
         chrono::Utc::now()
-    ).execute(pool.get_ref()).await;
-    HttpResponse::Ok().finish()
+    )
+    .execute(pool.get_ref())
+    .await
+    {
+        Err(err) => {
+            error!("Failed to insert {form:?} into subscriptions: {err}");
+            HttpResponse::InternalServerError().finish()
+        }
+        Ok(_) => HttpResponse::Ok().finish(),
+    }
 }
