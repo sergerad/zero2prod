@@ -67,6 +67,13 @@ pub fn connection_string(env_file_path: &str) -> anyhow::Result<String> {
     Ok(connection_string)
 }
 
+pub fn replace_db(connection_string: String, db_name: &str) -> anyhow::Result<String> {
+    match connection_string.rsplit_once('/') {
+        Some((prefix, _)) => Ok(format!("{}/{}", prefix, db_name)),
+        None => Err(anyhow::anyhow!("Invalid connection string format.")),
+    }
+}
+
 pub async fn get_pool(connection_string: &str) -> anyhow::Result<PgPool> {
     let pool = PgPool::connect(connection_string).await?;
     Ok(pool)

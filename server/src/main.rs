@@ -4,6 +4,10 @@ use server::configuration;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Enable logging
+    std::env::set_var("RUST_LOG", "debug");
+    env_logger::init();
+
     // TCP listener
     let settings = configuration::get_configuration()?;
     let listener = TcpListener::bind(format!("127.0.0.1:{}", settings.application_port))?;

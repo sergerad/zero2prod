@@ -6,10 +6,6 @@ pub mod configuration;
 pub mod routes;
 
 pub fn run(listener: TcpListener, pool: sqlx::PgPool) -> anyhow::Result<Server> {
-    // Enable logging
-    std::env::set_var("RUST_LOG", "debug");
-    env_logger::init();
-
     // Create copyable reference to pool
     let pool = web::Data::new(pool);
 
