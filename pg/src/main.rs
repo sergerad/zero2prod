@@ -1,36 +1,19 @@
-use log::info;
-use std::{fs, sync::mpsc::channel};
-
-use pg::*;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Enable logger
     std::env::set_var("RUST_LOG", "info");
     env_logger::init();
 
-    // Read settings from config file
-    let settings = get_configuration()?.database;
-
-    // Start Postgres container
-    let (node, pool) = spawn_pg(&settings).await?;
-    info!("Container is running. Waiting for signal to stop.");
-
-    // Close connection pool
-    pool.close().await;
-
-    // Store connection string in .env file
-    let connection_string = settings.connection_string(node.get_host_port_ipv4(5432).await);
-    fs::write(".env", format!("DATABASE_URL=\"{connection_string}\"",))?;
-    info!("Connection string written to .env");
-
-    // Listen for signal to stop
-    let (tx, rx) = channel();
-    ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))?;
-    rx.recv()?;
-
-    // Shut container down
-    info!("Shutting down");
-    node.stop().await;
-    Ok(())
+    let command = std::env::args().nth(1);
+    match command {
+        Some(cmd) if cmd == "migrate" => {
+            pg::migrate_pg().await?;
+            Ok(())
+        }
+        Some(cmd) if cmd == "run" => {
+            pg::spawn_and_wait().await?;
+            Ok(())
+        }
+        _ => Err(anyhow::anyhow!("Usage: pg [migrate|run]")),
+    }
 }

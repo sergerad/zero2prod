@@ -1,4 +1,5 @@
-use std::fs;
+use log::info;
+use std::{fs, sync::mpsc::channel};
 
 use sqlx::PgPool;
 use testcontainers::{runners::AsyncRunner, ContainerAsync};
@@ -36,6 +37,33 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     settings.try_deserialize()
 }
 
+pub async fn spawn_and_wait() -> anyhow::Result<()> {
+    // Read settings from config file
+    let settings = get_configuration()?.database;
+
+    // Start Postgres container
+    let (node, pool) = spawn_pg(&settings).await?;
+    info!("Container is running. Waiting for signal to stop.");
+
+    // Close connection pool
+    pool.close().await;
+
+    // Store connection string in .env file
+    let connection_string = settings.connection_string(node.get_host_port_ipv4(5432).await);
+    fs::write(".env", format!("DATABASE_URL=\"{connection_string}\"",))?;
+    info!("Connection string written to .env");
+
+    // Listen for signal to stop
+    let (tx, rx) = channel();
+    ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))?;
+    rx.recv()?;
+
+    // Shut container down
+    info!("Shutting down");
+    node.stop().await;
+    Ok(())
+}
+
 pub async fn spawn_pg(
     settings: &DatabaseSettings,
 ) -> anyhow::Result<(ContainerAsync<Postgres>, PgPool)> {
@@ -56,6 +84,17 @@ pub async fn spawn_pg(
 
     // Return container and pool
     Ok((node, pool))
+}
+
+pub async fn migrate_pg() -> anyhow::Result<()> {
+    // Create pool
+    let connection_string = connection_string(".env")?;
+    let pool = PgPool::connect(&connection_string).await?;
+
+    // Run migrations
+    sqlx::migrate!("../db/migrations").run(&pool).await?;
+
+    Ok(())
 }
 
 pub fn connection_string(env_file_path: &str) -> anyhow::Result<String> {
