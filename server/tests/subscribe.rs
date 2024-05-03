@@ -2,7 +2,6 @@ mod helpers;
 
 #[tokio::test]
 async fn subscribe_retuns_200_valid_form_data() {
-    // Start server
     let app = helpers::spawn_app().await;
 
     // Send request

@@ -1,14 +1,28 @@
 use std::net::TcpListener;
 
 use server::configuration;
+use tracing_bunyan_formatter::{
+    BunyanFormattingLayer, JsonStorageLayer,
+};
+use tracing_log::LogTracer;
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // Enable logging
-    env_logger::Builder::from_env(
-        env_logger::Env::default().default_filter_or("info"),
-    )
-    .init();
+    // Redirect all `log`s events to our subscriber
+    LogTracer::init()?;
+    // Tracing
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info"));
+    let formatting_layer = BunyanFormattingLayer::new(
+        "zero2prod".into(),
+        std::io::stdout,
+    );
+    let subscriber = Registry::default()
+        .with(env_filter)
+        .with(JsonStorageLayer)
+        .with(formatting_layer);
+    tracing::subscriber::set_global_default(subscriber)?;
 
     // TCP listener
     let settings = configuration::get_configuration()?;
