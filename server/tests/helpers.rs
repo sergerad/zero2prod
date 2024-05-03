@@ -1,6 +1,17 @@
 use std::net::TcpListener;
 
+use once_cell::sync::Lazy;
 use sqlx::{Connection, Executor};
+
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let subscriber = server::trace::get_subscriber(
+        "zero2prod".into(),
+        "debug".into(),
+    )
+    .expect("Failed to get trace subscriber");
+    server::trace::init_subscriber(subscriber)
+        .expect("Failed to init trace subscriber");
+});
 
 pub struct TestApp {
     pub base_url: String,
@@ -9,6 +20,9 @@ pub struct TestApp {
 }
 
 pub async fn spawn_app() -> TestApp {
+    // Tracing
+    Lazy::force(&TRACING);
+
     // Create database
     let connection_string = pg::connection_string("../.env")
         .expect("Failed to read .env file");
