@@ -49,7 +49,7 @@ jobs:
           # Specific to dtolnay/rust-toolchain: Comma-separated string of additional components to install
           components: rustfmt
       - name: Enforce formatting
-        run: cargo fmt --check
+        run: cargo fmt --check -- --config max_width=70
 
   clippy:
     name: Clippy

@@ -49,13 +49,19 @@ pub async fn spawn_and_wait() -> anyhow::Result<()> {
     pool.close().await;
 
     // Store connection string in .env file
-    let connection_string = settings.connection_string(node.get_host_port_ipv4(5432).await);
-    fs::write(".env", format!("DATABASE_URL=\"{connection_string}\"",))?;
+    let connection_string = settings
+        .connection_string(node.get_host_port_ipv4(5432).await);
+    fs::write(
+        ".env",
+        format!("DATABASE_URL=\"{connection_string}\"",),
+    )?;
     info!("Connection string written to .env");
 
     // Listen for signal to stop
     let (tx, rx) = channel();
-    ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))?;
+    ctrlc::set_handler(move || {
+        tx.send(()).expect("Could not send signal on channel.")
+    })?;
     rx.recv()?;
 
     // Shut container down
@@ -77,7 +83,10 @@ pub async fn spawn_pg(
 
     // Construct connections
     let host_port = node.get_host_port_ipv4(5432).await;
-    let pool = PgPool::connect(settings.connection_string(host_port).as_str()).await?;
+    let pool = PgPool::connect(
+        settings.connection_string(host_port).as_str(),
+    )
+    .await?;
 
     // Run migrations
     sqlx::migrate!("../db/migrations").run(&pool).await?;
@@ -97,7 +106,9 @@ pub async fn migrate_pg() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn connection_string(env_file_path: &str) -> anyhow::Result<String> {
+pub fn connection_string(
+    env_file_path: &str,
+) -> anyhow::Result<String> {
     // Read .env file and return content
     let connection_string = fs::read_to_string(env_file_path)?
         .trim_start_matches("DATABASE_URL=")
@@ -106,14 +117,21 @@ pub fn connection_string(env_file_path: &str) -> anyhow::Result<String> {
     Ok(connection_string)
 }
 
-pub fn replace_db(connection_string: String, db_name: &str) -> anyhow::Result<String> {
+pub fn replace_db(
+    connection_string: String,
+    db_name: &str,
+) -> anyhow::Result<String> {
     match connection_string.rsplit_once('/') {
         Some((prefix, _)) => Ok(format!("{}/{}", prefix, db_name)),
-        None => Err(anyhow::anyhow!("Invalid connection string format.")),
+        None => {
+            Err(anyhow::anyhow!("Invalid connection string format."))
+        }
     }
 }
 
-pub async fn get_pool(connection_string: &str) -> anyhow::Result<PgPool> {
+pub async fn get_pool(
+    connection_string: &str,
+) -> anyhow::Result<PgPool> {
     let pool = PgPool::connect(connection_string).await?;
     Ok(pool)
 }
