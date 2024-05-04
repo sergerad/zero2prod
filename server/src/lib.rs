@@ -1,5 +1,5 @@
 use actix_web::dev::Server;
-use actix_web::{middleware, web, App, HttpServer};
+use actix_web::{web, App, HttpServer};
 use std::net::TcpListener;
 
 pub mod configuration;
@@ -13,7 +13,7 @@ pub fn run(listener: TcpListener, pool: sqlx::PgPool) -> anyhow::Result<Server> 
     // Run server
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(middleware::Logger::default())
+            .wrap(tracing_actix_web::TracingLogger::default())
             .route("/health", web::get().to(routes::health_check))
             .route("/subscriptions", web::post().to(routes::subscribe))
             .app_data(pool.clone())

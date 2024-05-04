@@ -1,6 +1,5 @@
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use sqlx::PgPool;
-use uuid::Uuid;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct FormData {
@@ -16,7 +15,6 @@ pub async fn health_check(_req: HttpRequest) -> impl Responder {
     name = "Adding a new subscriber",
     skip(form, pool),
     fields(
-        request_id = %Uuid::new_v4(),
         subscriber_email = %form.email,
         subscriber_name = %form.name,
     )
