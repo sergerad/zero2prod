@@ -1,5 +1,6 @@
 use log::info;
-use std::{fs, sync::mpsc::channel};
+use secrecy::{ExposeSecret, Secret};
+use std::{path::PathBuf, sync::mpsc::channel};
 
 use sqlx::PgPool;
 use testcontainers::{runners::AsyncRunner, ContainerAsync};
@@ -13,17 +14,26 @@ pub struct Settings {
 #[derive(serde::Deserialize)]
 pub struct DatabaseSettings {
     pub user: String,
-    pub password: String,
+    pub password: Secret<String>,
     pub host: String,
     pub database: String,
 }
 
+#[derive(serde::Deserialize)]
+pub struct EnvFile {
+    pub database_url: Secret<String>,
+}
+
 impl DatabaseSettings {
-    pub fn connection_string(&self, port: u16) -> String {
-        format!(
+    pub fn connection_string(&self, port: u16) -> Secret<String> {
+        Secret::new(format!(
             "postgres://{}:{}@{}:{}/{}",
-            self.user, self.password, self.host, port, self.database,
-        )
+            self.user,
+            self.password.expose_secret(),
+            self.host,
+            port,
+            self.database,
+        ))
     }
 }
 
@@ -50,7 +60,12 @@ pub async fn spawn_and_wait() -> anyhow::Result<()> {
 
     // Store connection string in .env file
     let connection_string = settings.connection_string(node.get_host_port_ipv4(5432).await);
-    fs::write(".env", format!("DATABASE_URL=\"{connection_string}\"",))?;
+    let mut value = serde_envfile::Value::new();
+    value.insert(
+        "DATABASE_URL".into(),
+        connection_string.expose_secret().into(),
+    );
+    serde_envfile::to_file(&PathBuf::from(".env"), &value)?;
     info!("Connection string written to .env");
 
     // Listen for signal to stop
@@ -70,14 +85,20 @@ pub async fn spawn_pg(
     // Start Postgres container
     let node = Postgres::default()
         .with_db_name(&settings.database)
-        .with_password(&settings.password)
+        .with_password(settings.password.expose_secret())
         .with_user(&settings.user)
         .start()
         .await;
 
     // Construct connections
     let host_port = node.get_host_port_ipv4(5432).await;
-    let pool = PgPool::connect(settings.connection_string(host_port).as_str()).await?;
+    let pool = PgPool::connect(
+        settings
+            .connection_string(host_port)
+            .expose_secret()
+            .as_str(),
+    )
+    .await?;
 
     // Run migrations
     sqlx::migrate!("../db/migrations").run(&pool).await?;
@@ -89,7 +110,7 @@ pub async fn spawn_pg(
 pub async fn migrate_pg() -> anyhow::Result<()> {
     // Create pool
     let connection_string = connection_string(".env")?;
-    let pool = PgPool::connect(&connection_string).await?;
+    let pool = PgPool::connect(connection_string.expose_secret()).await?;
 
     // Run migrations
     sqlx::migrate!("../db/migrations").run(&pool).await?;
@@ -97,17 +118,14 @@ pub async fn migrate_pg() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn connection_string(env_file_path: &str) -> anyhow::Result<String> {
+pub fn connection_string(env_file_path: &str) -> anyhow::Result<Secret<String>> {
     // Read .env file and return content
-    let connection_string = fs::read_to_string(env_file_path)?
-        .trim_start_matches("DATABASE_URL=")
-        .replace('"', "")
-        .to_string();
-    Ok(connection_string)
+    let env_file: EnvFile = serde_envfile::from_file(&PathBuf::from(env_file_path))?;
+    Ok(env_file.database_url)
 }
 
-pub fn replace_db(connection_string: String, db_name: &str) -> anyhow::Result<String> {
-    match connection_string.rsplit_once('/') {
+pub fn replace_db(connection_string: Secret<String>, db_name: &str) -> anyhow::Result<String> {
+    match connection_string.expose_secret().rsplit_once('/') {
         Some((prefix, _)) => Ok(format!("{}/{}", prefix, db_name)),
         None => Err(anyhow::anyhow!("Invalid connection string format.")),
     }

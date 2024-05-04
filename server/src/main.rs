@@ -1,6 +1,6 @@
-use std::net::TcpListener;
-
+use secrecy::ExposeSecret;
 use server::configuration;
+use std::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let connection_string = pg::connection_string(".env")?;
 
     // DB pool
-    let pool = pg::get_pool(&connection_string).await?;
+    let pool = pg::get_pool(connection_string.expose_secret()).await?;
 
     // Server
     let _server = server::run(listener, pool)?.await;

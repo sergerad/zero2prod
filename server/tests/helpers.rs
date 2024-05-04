@@ -1,7 +1,7 @@
-use std::net::TcpListener;
-
 use once_cell::sync::Lazy;
+use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor};
+use std::net::TcpListener;
 
 static TRACING: Lazy<()> = Lazy::new(|| match std::env::var("TEST_LOG") {
     // Output to stdout
@@ -32,7 +32,7 @@ pub async fn spawn_app() -> TestApp {
 
     // Create database
     let connection_string = pg::connection_string("../.env").expect("Failed to read .env file");
-    let mut connection = sqlx::PgConnection::connect(&connection_string)
+    let mut connection = sqlx::PgConnection::connect(connection_string.expose_secret())
         .await
         .expect("Failed to connect to Postgres");
     let db_name = uuid::Uuid::new_v4().to_string();
