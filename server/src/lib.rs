@@ -6,10 +6,7 @@ pub mod configuration;
 pub mod routes;
 pub mod trace;
 
-pub fn run(
-    listener: TcpListener,
-    pool: sqlx::PgPool,
-) -> anyhow::Result<Server> {
+pub fn run(listener: TcpListener, pool: sqlx::PgPool) -> anyhow::Result<Server> {
     // Create copyable reference to pool
     let pool = web::Data::new(pool);
 
@@ -18,10 +15,7 @@ pub fn run(
         App::new()
             .wrap(middleware::Logger::default())
             .route("/health", web::get().to(routes::health_check))
-            .route(
-                "/subscriptions",
-                web::post().to(routes::subscribe),
-            )
+            .route("/subscriptions", web::post().to(routes::subscribe))
             .app_data(pool.clone())
     })
     .listen(listener)?

@@ -47,10 +47,7 @@ async fn subscribe_retuns_400_missing_form_data() {
     for (invalid_body, error_message) in test_cases {
         let response = client
             .post(format!("{}/subscriptions", app.base_url))
-            .header(
-                "Content-Type",
-                "application/x-www-form-urlencoded",
-            )
+            .header("Content-Type", "application/x-www-form-urlencoded")
             .body(invalid_body)
             .send()
             .await
