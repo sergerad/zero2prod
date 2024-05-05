@@ -101,3 +101,9 @@ jobs:
           cargo run --bin pg migrate
       - name: Generate code coverage
         run: cargo install cargo-tarpaulin && cargo tarpaulin --verbose --workspace
+
+  # Too slow
+  #docker:
+  #  name: Build image
+  #  steps:
+  #    - run: docker build .

@@ -11,7 +11,7 @@ async fn main() -> anyhow::Result<()> {
 
     // TCP listener
     let settings = configuration::get_configuration()?;
-    let listener = TcpListener::bind(format!("127.0.0.1:{}", settings.application_port))?;
+    let listener = TcpListener::bind(format!("{}:{}", settings.host, settings.port))?;
 
     // Read connection string from .env file
     let connection_string = pg::connection_string(".env")?;
