@@ -37,14 +37,14 @@ impl DatabaseSettings {
     }
 }
 
-pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    let settings = config::Config::builder()
-        .add_source(config::File::new(
-            "configuration.yaml",
-            config::FileFormat::Yaml,
-        ))
+pub fn get_configuration() -> anyhow::Result<Settings> {
+    let base_path = std::env::current_dir()?;
+    let config_dir = base_path.join("configuration");
+    let config = config::Config::builder()
+        .add_source(config::File::from(config_dir.join("base.yaml")))
         .build()?;
-    settings.try_deserialize()
+    let settings = config.try_deserialize()?;
+    Ok(settings)
 }
 
 pub async fn spawn_and_wait() -> anyhow::Result<()> {

@@ -1,4 +1,3 @@
-use secrecy::Secret;
 use serde_aux::field_attributes::deserialize_number_from_string;
 
 #[derive(serde::Deserialize)]
@@ -6,15 +5,7 @@ pub struct Settings {
     pub host: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
-    pub database: DatabaseSettings,
-}
-
-#[derive(serde::Deserialize)]
-pub struct DatabaseSettings {
-    pub user: String,
-    pub password: Secret<String>,
-    pub host: String,
-    pub database: String,
+    pub database: pg::DatabaseSettings,
 }
 
 pub enum Environment {
