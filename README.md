@@ -3,14 +3,18 @@
 This repo is based on a walkthrough of the book *Zero to Production in Rust: an opinionated introduction to backend development* by Luca Palmieri.
 
 The book is a phenomenal resource and I highly recommend it to anyone beginning their Rust journey. Here is a list of all the books I found helpful:
-* [Zero to Production](https://www.zero2prod.com/index.html?country=New%20Zealand&discount_code=OC20)
+* [Zero to Production](https://github.com/LukeMathWalker/zero-to-production)
 * [The Rust Programming Language](https://doc.rust-lang.org/book/)
 * [Async Rust](https://rust-lang.github.io/async-book/)
 * [Programming Rust (Systems)](https://www.amazon.com.au/Programming-Rust-Fast-Systems-Development/dp/1492052590)
 * [Rust for Rustaceans](https://rust-for-rustaceans.com/)
 * [Rust in Action](https://www.rustinaction.com/)
 
+Make sure to do the [rustlings](https://github.com/rust-lang/rustlings) challenges.
+
 I also recommend watching Rust content on Youtube. There are some excellent channels that will get you set up and show you how to write idiomatic Rust.
+
+Jon Gjengset (author of Rust for Rustaceans) has a [channel](https://www.youtube.com/@jonhoo) which does a great "decrusting crate {name}" series as well as some long-form coding challenge videos which are a great way to learn from an experienced Rustacean.
 
 ### The Source
 
@@ -18,6 +22,8 @@ While I have followed the book closely, I have made some noteworthy deviations f
 * Implementation of Postgres database start up and migrations in Rust, rather than BASH;
 * The use of a cargo workspace (in part to accomodate the previous point);
 * Go no further than implementation, testing, and CI (no CD);
+* Use of `anyhow` crate for returning `anyhow::Result<...>`;
+* Various module structure changes purely for personal preference;
 * ...
 
 There are two binary crates in the workspace: `server` and `pg`.
