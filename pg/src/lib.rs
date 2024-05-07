@@ -8,7 +8,9 @@ use testcontainers_modules::postgres::Postgres;
 
 pub async fn spawn_and_wait() -> anyhow::Result<()> {
     // Read settings from config file
-    let settings = conf::get_configuration(None)?;
+    let config_dir = std::env::current_dir()?.join("conf");
+    let base_config_file = config_dir.join("base.yaml");
+    let settings = conf::get_configuration(config_dir)?;
 
     // Start Postgres container
     let (node, pool) = spawn_pg(&settings.database).await?;
@@ -25,7 +27,6 @@ pub async fn spawn_and_wait() -> anyhow::Result<()> {
         },
         ..settings
     };
-    let base_config_file = conf::base_config_file()?;
     let f = std::fs::OpenOptions::new()
         .write(true)
         .create(false)

@@ -117,21 +117,7 @@ pub struct EnvFile {
     pub database_url: Secret<String>,
 }
 
-pub fn config_dir(relative_offset: Option<String>) -> anyhow::Result<std::path::PathBuf> {
-    if let Some(offset) = relative_offset {
-        return Ok(std::env::current_dir()?.join(offset).join("conf"));
-    }
-    Ok(std::env::current_dir()?.join("conf"))
-}
-
-pub fn base_config_file() -> anyhow::Result<std::path::PathBuf> {
-    Ok(config_dir(None)?.join("base.yaml"))
-}
-
-pub fn get_configuration(relative_offset: Option<String>) -> anyhow::Result<Settings> {
-    // Config dir path
-    let config_dir = config_dir(relative_offset)?;
-
+pub fn get_configuration(config_dir: std::path::PathBuf) -> anyhow::Result<Settings> {
     // Determine config file based on env
     let env: Environment = std::env::var("ZERO2PROD_ENV")
         .unwrap_or_else(|_| "local".into())

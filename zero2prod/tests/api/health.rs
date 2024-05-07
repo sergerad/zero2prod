@@ -1,5 +1,4 @@
-mod helpers;
-use helpers::*;
+use crate::helpers::*;
 
 #[tokio::test]
 async fn health_check_works() {
