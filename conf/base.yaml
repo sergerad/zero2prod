@@ -1,0 +1,16 @@
+database:
+  username: postgres
+  password: password
+  host: 127.0.0.1
+  port: 5432
+  database_name: newsletter
+  require_ssl: false
+application:
+  port: 8000
+  host: 127.0.0.1
+  base_url: http://127.0.0.1
+email_client:
+  base_url: localhost
+  sender_email: test@gmail.com
+  authorization_token: my-secret-token
+  timeout_milliseconds: 10000

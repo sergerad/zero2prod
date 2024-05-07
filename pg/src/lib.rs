@@ -6,60 +6,38 @@ use sqlx::PgPool;
 use testcontainers::{runners::AsyncRunner, ContainerAsync};
 use testcontainers_modules::postgres::Postgres;
 
-#[derive(serde::Deserialize)]
-pub struct Settings {
-    pub database: DatabaseSettings,
-}
-
-#[derive(serde::Deserialize)]
-pub struct DatabaseSettings {
-    pub user: String,
-    pub password: Secret<String>,
-    pub host: String,
-    pub database: String,
-}
-
-#[derive(serde::Deserialize)]
-pub struct EnvFile {
-    pub database_url: Secret<String>,
-}
-
-impl DatabaseSettings {
-    pub fn connection_string(&self, port: u16) -> Secret<String> {
-        Secret::new(format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.user,
-            self.password.expose_secret(),
-            self.host,
-            port,
-            self.database,
-        ))
-    }
-}
-
-pub fn get_configuration() -> anyhow::Result<Settings> {
-    let base_path = std::env::current_dir()?;
-    let config_dir = base_path.join("configuration");
-    let config = config::Config::builder()
-        .add_source(config::File::from(config_dir.join("base.yaml")))
-        .build()?;
-    let settings = config.try_deserialize()?;
-    Ok(settings)
-}
-
 pub async fn spawn_and_wait() -> anyhow::Result<()> {
     // Read settings from config file
-    let settings = get_configuration()?.database;
+    let settings = conf::get_configuration(None)?;
 
     // Start Postgres container
-    let (node, pool) = spawn_pg(&settings).await?;
+    let (node, pool) = spawn_pg(&settings.database).await?;
     info!("Container is running. Waiting for signal to stop.");
 
     // Close connection pool
     pool.close().await;
 
+    // Overwrite local configuration
+    let updated_settings = conf::Settings {
+        database: conf::DatabaseSettings {
+            port: node.get_host_port_ipv4(5432).await,
+            ..settings.database
+        },
+        ..settings
+    };
+    let base_config_file = conf::base_config_file()?;
+    let f = std::fs::OpenOptions::new()
+        .write(true)
+        .create(false)
+        .open(base_config_file)?;
+    serde_yaml::to_writer(f, &updated_settings).unwrap();
     // Store connection string in .env file
-    let connection_string = settings.connection_string(node.get_host_port_ipv4(5432).await);
+    info!("DB port written to configuration file");
+
+    // Store connection string in .env file
+    let connection_string = updated_settings
+        .database
+        .connection_string(updated_settings.database.port);
     let mut value = serde_envfile::Value::new();
     value.insert(
         "DATABASE_URL".into(),
@@ -80,13 +58,13 @@ pub async fn spawn_and_wait() -> anyhow::Result<()> {
 }
 
 pub async fn spawn_pg(
-    settings: &DatabaseSettings,
+    settings: &conf::DatabaseSettings,
 ) -> anyhow::Result<(ContainerAsync<Postgres>, PgPool)> {
     // Start Postgres container
     let node = Postgres::default()
-        .with_db_name(&settings.database)
+        .with_db_name(&settings.database_name)
         .with_password(settings.password.expose_secret())
-        .with_user(&settings.user)
+        .with_user(&settings.username)
         .start()
         .await;
 
@@ -101,7 +79,7 @@ pub async fn spawn_pg(
     .await?;
 
     // Run migrations
-    sqlx::migrate!("../db/migrations").run(&pool).await?;
+    sqlx::migrate!("../migrations").run(&pool).await?;
 
     // Return container and pool
     Ok((node, pool))
@@ -113,25 +91,13 @@ pub async fn migrate_pg() -> anyhow::Result<()> {
     let pool = PgPool::connect(connection_string.expose_secret()).await?;
 
     // Run migrations
-    sqlx::migrate!("../db/migrations").run(&pool).await?;
+    sqlx::migrate!("../migrations").run(&pool).await?;
 
     Ok(())
 }
 
 pub fn connection_string(env_file_path: &str) -> anyhow::Result<Secret<String>> {
     // Read .env file and return content
-    let env_file: EnvFile = serde_envfile::from_file(&PathBuf::from(env_file_path))?;
+    let env_file: conf::EnvFile = serde_envfile::from_file(&PathBuf::from(env_file_path))?;
     Ok(env_file.database_url)
-}
-
-pub fn replace_db(connection_string: Secret<String>, db_name: &str) -> anyhow::Result<String> {
-    match connection_string.expose_secret().rsplit_once('/') {
-        Some((prefix, _)) => Ok(format!("{}/{}", prefix, db_name)),
-        None => Err(anyhow::anyhow!("Invalid connection string format.")),
-    }
-}
-
-pub async fn get_pool(connection_string: &str) -> anyhow::Result<PgPool> {
-    let pool = PgPool::connect(connection_string).await?;
-    Ok(pool)
 }

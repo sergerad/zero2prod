@@ -2,10 +2,10 @@ use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
 use std::net::TcpListener;
 
-pub mod configuration;
-pub mod domain;
+pub mod email_client;
 pub mod routes;
-pub mod trace;
+pub mod startup;
+pub mod telemetry;
 
 pub fn run(listener: TcpListener, pool: sqlx::PgPool) -> anyhow::Result<Server> {
     // Create copyable reference to pool

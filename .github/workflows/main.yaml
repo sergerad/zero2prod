@@ -16,9 +16,9 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: user
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: database
+          POSTGRES_DB: newsletter
         # When you map ports using the ports keyword, GitHub uses the --publish command to publish the container’s ports to the Docker host
         # Opens tcp port 5432 on the host and service container
         ports:
@@ -33,7 +33,7 @@ jobs:
       - name: Migrate database
         shell: bash
         run: |
-          echo 'DATABASE_URL="postgres://user:password@127.0.0.1:5432/database"' > .env
+          echo 'DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/newsletter"' > .env
           cargo run --bin pg migrate
       - name: Run tests
         shell: bash
@@ -58,9 +58,9 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: user
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: database
+          POSTGRES_DB: newsletter
         ports:
           - 5432:5432
     steps:
@@ -72,7 +72,7 @@ jobs:
       - name: Migrate database
         shell: bash
         run: |
-          echo 'DATABASE_URL="postgres://user:password@127.0.0.1:5432/database"' > .env
+          echo 'DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/newsletter"' > .env
           cargo run --bin pg migrate
       - name: Linting
         run: cargo clippy -- -D warnings
@@ -84,9 +84,9 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: user
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: database
+          POSTGRES_DB: newsletter
         ports:
           - 5432:5432
     steps:
@@ -97,7 +97,7 @@ jobs:
       - name: Migrate database
         shell: bash
         run: |
-          echo 'DATABASE_URL="postgres://user:password@127.0.0.1:5432/database"' > .env
+          echo 'DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/newsletter"' > .env
           cargo run --bin pg migrate
       - name: Generate code coverage
         run: cargo install cargo-tarpaulin && cargo tarpaulin --verbose --workspace

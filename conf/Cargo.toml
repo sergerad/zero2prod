@@ -1,19 +1,13 @@
 [package]
-name = "pg"
+name = "conf"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
 path = "src/lib.rs"
 
-[[bin]]
-path = "src/main.rs"
-name = "pg"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-conf = { path = "../conf" }
+domain = { path = "../domain" }
 anyhow = "1.0.82"
 chrono = { version = "0.4.38", default-features = false, features = ["clock"] }
 config = "0.14.0"
@@ -39,3 +33,4 @@ uuid = { version = "1.8.0", features = ["v4"] }
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde-envfile = "0.1.0"
 serde_yaml = "0.9.34"
+serde-aux = "4"
