@@ -20,17 +20,11 @@ Jon Gjengset (author of Rust for Rustaceans) has a [channel](https://www.youtube
 
 While I have followed the book closely, I have made some noteworthy deviations from its instructions for the sake of interest and learning, namely:
 * Implementation of Postgres database start up and migrations in Rust, rather than BASH;
-* The use of a cargo workspace (in part to accomodate the previous point);
+* The use of a cargo workspace for additional crates: domain, pg, and conf;
 * Go no further than implementation, testing, and CI (no CD);
-* Use of `anyhow` crate for returning `anyhow::Result<...>`;
-* Various module structure changes purely for personal preference;
 * ...
 
-There are two binary crates in the workspace: `server` and `pg`.
-
 The `pg` crate is used to launch Postgres locally with Docker for the sake of local deployment and testing.
-
-The `server` is the REST API.
 
 ### Usage
 
@@ -48,7 +42,7 @@ cargo test
 
 And we can run the API server:
 ```sh
-cargo run --bin server
+cargo run --bin zero2prod
 ```
 
 Have a look at the YAML files in `configuration/` if you want to change any default values. The default port is `8080`:
