@@ -7,38 +7,10 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
-actix-web = "4.5.1"
-anyhow = "1.0.82"
-chrono = { version = "0.4.38", default-features = false, features = ["clock"] }
-config = "0.14.0"
 serde = { version = "1.0.199", features = ["derive"] }
-sqlx = { version = "0.7.4", default-features = false, features = [
-	"postgres",
-	"macros",
-	"runtime-tokio",
-	"uuid",
-	"chrono",
-	"migrate",
-] }
-testcontainers = "0.16.3"
-testcontainers-modules = { version = "0.4.0", features = [
-	"postgres",
-	"blocking",
-] }
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-uuid = { version = "1.8.0", features = ["v4"] }
-tracing = { version = "0.1", features = ["log"] }
-tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
-tracing-bunyan-formatter = "0.3"
-tracing-log = "0.2"
-secrecy = { version = "0.8.0", features = ["serde"] }
-tracing-actix-web = "0.7"
-serde-aux = "4"
 unicode-segmentation = "1.7.1"
 validator = "0.16"
-reqwest = { version = "0.12.4", features = ["json"] }
 serde_json = "1.0.61"
-rand = { version = "0.8", features = ["std_rng"] }
 
 [dev-dependencies]
 claims = "0.7.0"

@@ -13,7 +13,6 @@ name = "zero2prod"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pg = { path = "../pg" }
 conf = { path = "../conf" }
 domain = { path = "../domain" }
 actix-web = "4.5.1"
@@ -28,11 +27,6 @@ sqlx = { version = "0.7.4", default-features = false, features = [
 	"uuid",
 	"chrono",
 	"migrate",
-] }
-testcontainers = "0.16.3"
-testcontainers-modules = { version = "0.4.0", features = [
-	"postgres",
-	"blocking",
 ] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 uuid = { version = "1.8.0", features = ["v4"] }
