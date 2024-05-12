@@ -54,6 +54,18 @@ impl EmailClient {
     }
 }
 
+impl TryFrom<&conf::EmailClientSettings> for EmailClient {
+    type Error = anyhow::Error;
+    fn try_from(settings: &conf::EmailClientSettings) -> Result<Self, Self::Error> {
+        Ok(Self::new(
+            settings.base_url.clone(),
+            settings.sender()?,
+            settings.authorization_token.clone(),
+            settings.timeout(),
+        ))
+    }
+}
+
 #[derive(serde::Serialize)]
 #[serde(rename_all = "PascalCase")]
 struct SendEmailRequest<'a> {

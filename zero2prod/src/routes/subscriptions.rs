@@ -18,7 +18,7 @@ pub struct FormData {
 }
 
 impl TryFrom<FormData> for NewSubscriber {
-    type Error = String;
+    type Error = anyhow::Error;
 
     fn try_from(value: FormData) -> Result<Self, Self::Error> {
         let name = SubscriberName::parse(value.name)?;
@@ -65,7 +65,10 @@ pub async fn subscribe(
     email_client: web::Data<EmailClient>,
     base_url: web::Data<ApplicationBaseUrl>,
 ) -> Result<HttpResponse, SubscribeError> {
-    let new_subscriber = form.0.try_into().map_err(SubscribeError::ValidationError)?;
+    let new_subscriber = form
+        .0
+        .try_into()
+        .map_err(|err: anyhow::Error| SubscribeError::ValidationError(err.to_string()))?;
     let mut transaction = pool
         .begin()
         .await
