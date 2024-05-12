@@ -29,7 +29,7 @@ sqlx = { version = "0.7.4", default-features = false, features = [
 	"migrate",
 ] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-uuid = { version = "1.8.0", features = ["v4"] }
+uuid = { version = "1.8.0", features = ["v4", "serde"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 tracing-bunyan-formatter = "0.3"
@@ -39,10 +39,18 @@ tracing-actix-web = "0.7"
 serde-aux = "4"
 unicode-segmentation = "1.7.1"
 validator = "0.16"
-reqwest = { version = "0.12.4", features = ["json"] }
+reqwest = { version = "0.11", default-features = false, features = [
+	"json",
+	"rustls-tls",
+	"cookies",
+] }
 serde_json = "1.0.61"
 rand = { version = "0.8", features = ["std_rng"] }
 thiserror = "1.0.24"
+argon2 = { version = "0.4", features = ["std"] }
+actix-web-flash-messages = { version = "0.4", features = ["cookies"] }
+actix-session = { version = "0.7", features = ["redis-rs-tls-session"] }
+actix-web-lab = "0.18"
 
 [dev-dependencies]
 claims = "0.7.0"

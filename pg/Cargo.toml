@@ -32,6 +32,7 @@ sqlx = { version = "0.7.4", default-features = false, features = [
 testcontainers = "0.16.3"
 testcontainers-modules = { version = "0.4.0", features = [
 	"postgres",
+	"redis",
 	"blocking",
 ] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

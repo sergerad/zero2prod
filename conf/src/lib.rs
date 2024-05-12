@@ -11,6 +11,8 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub email_client: EmailClientSettings,
+    #[serde(serialize_with = "serialize_secret")]
+    pub redis_uri: Secret<String>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
@@ -19,6 +21,8 @@ pub struct ApplicationSettings {
     pub port: u16,
     pub host: String,
     pub base_url: String,
+    #[serde(serialize_with = "serialize_secret")]
+    pub hmac_secret: Secret<String>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
