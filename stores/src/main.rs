@@ -6,11 +6,11 @@ async fn main() -> anyhow::Result<()> {
     let command = std::env::args().nth(1);
     match command {
         Some(cmd) if cmd == "migrate" => {
-            pg::migrate_pg().await?;
+            stores::migrate_pg().await?;
             Ok(())
         }
         Some(cmd) if cmd == "run" => {
-            pg::spawn_and_wait().await?;
+            stores::spawn_and_wait().await?;
             Ok(())
         }
         _ => Err(anyhow::anyhow!("Usage: pg [migrate|run]")),

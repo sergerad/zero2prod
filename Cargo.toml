@@ -1,4 +1,4 @@
 [workspace]
 
 resolver = "2"
-members = ["zero2prod", "pg", "conf", "domain"]
+members = ["zero2prod", "stores", "conf", "domain"]

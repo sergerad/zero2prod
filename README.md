@@ -19,20 +19,17 @@ Jon Gjengset (author of Rust for Rustaceans) has a [channel](https://www.youtube
 ### The Source
 
 While I have followed the book closely, I have made some noteworthy deviations from its instructions for the sake of interest and learning, namely:
-* Implementation of Postgres database start up and migrations in Rust, rather than BASH;
-* The use of a cargo workspace for additional crates: domain, pg, and conf;
-* Go no further than implementation, testing, and CI (no CD);
-* ...
-
-The `pg` crate is used to launch Postgres locally with Docker for the sake of local deployment and testing.
+* Postgres (incl. migrations) and redis bootstrap implemented in Rust instead of BASH;
+* The use of a cargo workspace for additional crates;
+* Go no further than implementation, testing, and CI (no CD).
 
 ### Usage
 
 Have a look at `main.yaml` to understand how all the source is validated.
 
-To run the server locally, or run the tests, we must first start up a Postgres instance:
+To run the server locally, or run the tests, we must first run Postgres and Redis via docker:
 ```sh
-cargo run --bin pg run &
+cargo run --bin stores run &
 ```
 
 Then we can run tests:

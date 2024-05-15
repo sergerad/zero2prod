@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           echo 'DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/newsletter"' > .env
-          cargo run --bin pg migrate
+          cargo run --bin stores migrate
       - name: Run tests
         shell: bash
         run: cargo test
@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: |
           echo 'DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/newsletter"' > .env
-          cargo run --bin pg migrate
+          cargo run --bin stores migrate
       - name: Linting
         run: cargo clippy -- -D warnings
 
@@ -110,7 +110,7 @@ jobs:
         shell: bash
         run: |
           echo 'DATABASE_URL="postgres://postgres:password@127.0.0.1:5432/newsletter"' > .env
-          cargo run --bin pg migrate
+          cargo run --bin stores migrate
       - name: Generate code coverage
         run: cargo install cargo-tarpaulin && cargo tarpaulin --verbose --workspace
 
